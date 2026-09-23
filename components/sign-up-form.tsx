@@ -44,12 +44,8 @@ export function SignUpForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password }),
       });
-
       const result = (await response.json()) as { message?: string };
-      if (!response.ok) {
-        throw new Error(result.message ?? "Registration failed");
-      }
-
+      if (!response.ok) throw new Error(result.message ?? "Registration failed");
       router.push("/auth/login");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
@@ -70,13 +66,7 @@ export function SignUpForm({
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
                 <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
+                <Input id="name" type="text" required value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
