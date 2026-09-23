@@ -16,7 +16,8 @@ async function getUserId() {
 export async function GET() {
   try {
     const userId = await getUserId();
-    const { data, error } = await createClient()
+    const supabase = await createClient();
+    const { data, error } = await supabase
       .from('transactions')
       .select('*')
       .eq('user_id', userId);
@@ -28,12 +29,13 @@ export async function GET() {
 }
 
 /** POST /api/transactions – create a new transaction for the user */
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const userId = await getUserId();
     const body: Partial<Transaction> = await request.json();
     const payload = { ...body, user_id: userId };
-    const { data, error } = await createClient()
+    const supabase = await createClient();
+    const { data, error } = await supabase
       .from('transactions')
       .insert([payload]);
     if (error) throw error;
@@ -51,7 +53,8 @@ export async function PUT(request: NextRequest) {
     const id = searchParams.get('id');
     if (!id) throw new Error('Missing transaction id');
     const updates: Partial<Transaction> = await request.json();
-    const { data, error } = await createClient()
+    const supabase = await createClient();
+    const { data, error } = await supabase
       .from('transactions')
       .update(updates)
       .eq('id', id)
@@ -70,13 +73,14 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = request.nextUrl;
     const id = searchParams.get('id');
     if (!id) throw new Error('Missing transaction id');
-    const { error } = await createClient()
+    const supabase = await createClient();
+    const { error } = await supabase
       .from('transactions')
       .delete()
       .eq('id', id)
       .eq('user_id', userId);
     if (error) throw error;
-    return new NextResponse(null, { status: 204 });
+    return new NextResponse('', { status: 204 });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 400 });
   }
