@@ -5,12 +5,21 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
 import { Suspense } from "react";
+import { getCurrentUser } from "@/lib/auth/session";
+import { redirect } from "next/navigation";
 
-export default function ProtectedLayout({
+export default async function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  if (!process.env.DB_HOST || !process.env.SESSION_SECRET) {
+    redirect("/auth/login");
+  }
+
+  const user = await getCurrentUser();
+  if (!user) redirect("/auth/login");
+
   return (
     <main className="min-h-screen flex flex-col items-center">
       <div className="flex-1 w-full flex flex-col gap-20 items-center">

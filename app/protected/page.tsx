@@ -1,19 +1,13 @@
-import { redirect } from "next/navigation";
-
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/session";
 import { InfoIcon } from "lucide-react";
 import { FetchDataSteps } from "@/components/tutorial/fetch-data-steps";
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 
 async function UserDetails() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getClaims();
-
-  if (error || !data?.claims) {
-    redirect("/auth/login");
-  }
-
-  return JSON.stringify(data.claims, null, 2);
+  if (!process.env.DB_HOST || !process.env.SESSION_SECRET) redirect("/auth/login");
+  const user = await getCurrentUser();
+  return JSON.stringify(user, null, 2);
 }
 
 export default function ProtectedPage() {
