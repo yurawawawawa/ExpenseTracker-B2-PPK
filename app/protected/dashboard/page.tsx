@@ -1,17 +1,16 @@
-import { createClient } from '@/lib/supabase/server';
+import { getCurrentUser } from '@/lib/auth/session';
 import { Transaction, FinancialSummary } from '@/lib/types';
 import DashboardContent from '@/components/dashboard/dashboard-content';
-
-export const dynamic = 'force-dynamic'; // fetch fresh data on each request
+import { createClient } from '@/lib/supabase/server';
+import { redirect } from 'next/navigation';
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-  const { data: userData } = await supabase.auth.getClaims();
-  const user = userData?.claims;
+  const user = await getCurrentUser();
   if (!user) {
-    // fallback, but auth middleware should redirect already
-    return null;
+    redirect('/auth/login');
   }
+
+  const supabase = await createClient();
 
   // Financial summary
   const { data: incomeData } = await supabase
