@@ -10,6 +10,9 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
+  {
+    ignores: [".next/**", "ExpenseTracker-B2-PPK/**"],
+  },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
 ];
 
