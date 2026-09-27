@@ -1,15 +1,32 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import prisma from '@/lib/prisma' // Pastikan file lib/prisma.ts sudah ada nanti
-import { Prisma, TransactionType } from '@prisma/client'
+import prisma from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
+import { getCurrentUser } from '@/lib/auth/session'
 
-// --- DUMMY AUTH (SESUAIKAN DENGAN PROJECT KELOMPOKMU NANTI) ---
-// Supaya SRS (otomatis dikaitkan dengan user yang sedang login) terpenuhi
+type TransactionType = 'income' | 'expense'
+
 async function getSessionUser() {
-  const userId = "user-123-dummy" // Nanti ganti pakai session dari Supabase Auth / NextAuth
-  if (!userId) throw new Error("Unauthorized")
-  return userId
+  const user = await getCurrentUser()
+  if (!user) throw new Error('Unauthorized')
+  return user
+}
+
+function serializeTransaction<T extends { amount: Prisma.Decimal }>(transaction: T) {
+  return { ...transaction, amount: transaction.amount.toNumber() }
+}
+
+function validateTransactionInput(data: { amount?: number; type?: string; date?: Date }) {
+  if (data.amount !== undefined && (!Number.isFinite(data.amount) || data.amount <= 0)) {
+    throw new Error('Nominal tidak valid')
+  }
+  if (data.type !== undefined && data.type !== 'income' && data.type !== 'expense') {
+    throw new Error('Jenis transaksi tidak valid')
+  }
+  if (data.date !== undefined && Number.isNaN(data.date.getTime())) {
+    throw new Error('Tanggal tidak valid')
+  }
 }
 
 // ==========================================
@@ -21,22 +38,21 @@ export async function createTransaction(data: {
   description: string
   date: Date
 }) {
-  const userId = await getSessionUser()
-
-  if (data.amount <= 0) throw new Error("Nominal harus lebih dari 0")
+  const user = await getSessionUser()
+  validateTransactionInput(data)
 
   const transaction = await prisma.transaction.create({
     data: {
-      userId,           // Otomatis terikat dengan user yang login
-      type: data.type,  // Tipe ter-restrict hanya INCOME/EXPENSE oleh skema database
+      userId: user.id,
+      type: data.type,
       amount: data.amount,
       description: data.description,
       date: data.date,
     }
   })
 
-  revalidatePath('/transactions') // Refresh cache halaman agar data baru muncul
-  return { success: true, data: transaction }
+  revalidatePath('/protected/dashboard')
+  return { success: true, data: serializeTransaction(transaction) }
 }
 
 
@@ -47,12 +63,11 @@ export async function getTransactions(options?: {
   filterType?: 'ALL' | TransactionType,
   sortOrder?: 'asc' | 'desc'
 }) {
-  const userId = await getSessionUser()
+  const user = await getSessionUser()
   const filter = options?.filterType || 'ALL'
   const sort = options?.sortOrder || 'desc'
 
-  // SRS-06: Hanya transaksi milik user yang ditampilkan
-  const queryConditions: Prisma.TransactionWhereInput = { userId }
+  const queryConditions: Prisma.TransactionWhereInput = { userId: user.id }
 
   // SRS-09: Filter berdasarkan jenis transaksi
   if (filter !== 'ALL') {
@@ -73,7 +88,7 @@ export async function getTransactions(options?: {
     }
   })
 
-  return transactions
+  return transactions.map(serializeTransaction)
 }
 
 
@@ -89,25 +104,20 @@ export async function updateTransaction(
     date?: Date
   }
 ) {
-  const userId = await getSessionUser()
+  const user = await getSessionUser()
+  validateTransactionInput(data)
 
-  // Pastikan data milik user yang sedang login
-  const existingTx = await prisma.transaction.findUnique({ where: { id: transactionId } })
-  if (!existingTx || existingTx.userId !== userId) {
-    throw new Error("Transaksi tidak ditemukan atau akses ditolak")
-  }
-
-  if (data.amount !== undefined && data.amount <= 0) {
-    throw new Error("Nominal tidak valid")
-  }
-
-  const updatedTx = await prisma.transaction.update({
-    where: { id: transactionId },
-    data
+  const result = await prisma.transaction.updateMany({
+    where: { id: transactionId, userId: user.id },
+    data,
   })
+  if (result.count === 0) throw new Error('Transaksi tidak ditemukan atau akses ditolak')
 
-  revalidatePath('/transactions')
-  return { success: true, data: updatedTx }
+  const updatedTx = await prisma.transaction.findFirstOrThrow({
+    where: { id: transactionId, userId: user.id },
+  })
+  revalidatePath('/protected/dashboard')
+  return { success: true, data: serializeTransaction(updatedTx) }
 }
 
 
@@ -115,18 +125,12 @@ export async function updateTransaction(
 // SRS-08: Delete Transaction
 // ==========================================
 export async function deleteTransaction(transactionId: string) {
-  const userId = await getSessionUser()
-
-  // Validasi kepemilikan
-  const existingTx = await prisma.transaction.findUnique({ where: { id: transactionId } })
-  if (!existingTx || existingTx.userId !== userId) {
-    throw new Error("Transaksi tidak ditemukan atau akses ditolak")
-  }
-
-  await prisma.transaction.delete({
-    where: { id: transactionId }
+  const user = await getSessionUser()
+  const result = await prisma.transaction.deleteMany({
+    where: { id: transactionId, userId: user.id },
   })
+  if (result.count === 0) throw new Error('Transaksi tidak ditemukan atau akses ditolak')
 
-  revalidatePath('/transactions')
+  revalidatePath('/protected/dashboard')
   return { success: true }
 }
