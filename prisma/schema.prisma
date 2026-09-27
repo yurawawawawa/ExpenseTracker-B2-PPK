@@ -9,20 +9,18 @@ datasource db {
   directUrl = env("DIRECT_URL") // Tambahkan baris ini
 }
 
-enum TransactionType {
-  INCOME
-  EXPENSE
-}
-
 model Transaction {
-  id          String          @id @default(uuid())
-  userId      String
-  type        TransactionType
-  amount      Float
-  description String
-  date        DateTime
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  type        String   @db.VarChar(10)
+  amount      Decimal  @db.Decimal(15, 2)
+  description String?  @db.Text
+  category    String?  @db.VarChar(100)
+  date        DateTime @default(dbgenerated("CURRENT_DATE")) @db.Date
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
-  @@index([userId, date])
+  @@index([userId], map: "transactions_user_id_idx")
+  @@index([date], map: "transactions_date_idx")
+  @@index([type], map: "transactions_type_idx")
+  @@map("transactions")
 }
