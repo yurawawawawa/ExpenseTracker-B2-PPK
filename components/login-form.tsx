@@ -38,7 +38,7 @@ export function LoginForm({
       });
       const result = (await response.json()) as { message?: string };
       if (!response.ok) throw new Error(result.message ?? "Login failed");
-      router.push("/protected");
+      router.push("/protected/dashboard");
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {

@@ -8,6 +8,8 @@ import { Suspense } from "react";
 import { getCurrentUser } from "@/lib/auth/session";
 import { redirect } from "next/navigation";
 
+export const instant = false;
+
 export default async function ProtectedLayout({
   children,
 }: {

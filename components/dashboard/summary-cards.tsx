@@ -3,7 +3,6 @@ import { FinancialSummary } from '@/lib/types';
 import { formatRupiah } from '@/lib/format';
 import BalanceCard from './balance-card';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 
 interface SummaryCardsProps {
   summary: FinancialSummary;
