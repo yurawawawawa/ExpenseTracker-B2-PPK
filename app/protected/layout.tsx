@@ -1,6 +1,7 @@
 import { LogoutButton } from "@/components/logout-button";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth/session";
+import { hasDatabaseConfig } from "@/lib/db";
 import { redirect } from "next/navigation";
 
 export const instant = false;
@@ -10,7 +11,7 @@ export default async function ProtectedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  if (!process.env.DB_HOST || !process.env.SESSION_SECRET) {
+  if (!hasDatabaseConfig() || !process.env.SESSION_SECRET) {
     redirect("/auth/login");
   }
 

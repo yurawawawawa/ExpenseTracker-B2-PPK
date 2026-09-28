@@ -17,14 +17,21 @@ function required(name: string) {
 
 export function getDatabase(): DatabaseClient {
   if (!pool) {
-    pool = new Pool({
-      host: required("DB_HOST"),
-      port: Number(process.env.DB_PORT ?? 5432),
-      database: required("DB_DATABASE"),
-      user: required("DB_USERNAME"),
-      password: required("DB_PASSWORD"),
-      ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined,
-    });
+    const connectionString = process.env.DATABASE_URL;
+    pool = connectionString
+      ? new Pool({ connectionString })
+      : new Pool({
+          host: required("DB_HOST"),
+          port: Number(process.env.DB_PORT ?? 5432),
+          database: required("DB_DATABASE"),
+          user: required("DB_USERNAME"),
+          password: required("DB_PASSWORD"),
+          ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : undefined,
+        });
   }
   return pool;
+}
+
+export function hasDatabaseConfig() {
+  return Boolean(process.env.DATABASE_URL || process.env.DB_HOST);
 }

@@ -2,9 +2,10 @@ import Link from "next/link";
 import { Button } from "./ui/button";
 import { LogoutButton } from "./logout-button";
 import { getCurrentUser } from "@/lib/auth/session";
+import { hasDatabaseConfig } from "@/lib/db";
 
 export async function AuthButton() {
-  if (!process.env.DB_HOST || !process.env.SESSION_SECRET) {
+  if (!hasDatabaseConfig() || !process.env.SESSION_SECRET) {
     return (
       <div className="flex gap-2">
         <Button asChild size="sm" variant="outline">
