@@ -11,12 +11,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { AlertCircle, ArrowUpRight, Plus, Search, Sparkles } from 'lucide-react';
+import { useProtectedUserName } from '@/components/dashboard/protected-user-context';
 
 interface DashboardContentProps {
-  userName: string;
+  page?: 'dashboard' | 'transactions';
 }
 
-export default function DashboardContent({ userName }: DashboardContentProps) {
+export default function DashboardContent({ page = 'dashboard' }: DashboardContentProps) {
+  const userName = useProtectedUserName();
+  const isTransactionsPage = page === 'transactions';
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -153,17 +156,19 @@ export default function DashboardContent({ userName }: DashboardContentProps) {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-9 px-4 py-7 sm:px-7 lg:px-10 lg:py-10">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-7 overflow-x-hidden px-4 py-6 sm:gap-9 sm:px-7 sm:py-7 lg:px-10 lg:py-10">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
-            <Sparkles className="size-3.5" /> Financial overview
+            <Sparkles className="size-3.5" /> {isTransactionsPage ? 'Transaction management' : 'Financial overview'}
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Welcome back, {userName}</h1>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">See where your money goes and keep every financial goal within reach.</p>
+          <h1 className="break-words text-[1.75rem] font-bold leading-tight tracking-tight text-slate-950 sm:text-4xl">{isTransactionsPage ? 'Transactions' : `Welcome back, ${userName}`}</h1>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">
+            {isTransactionsPage ? 'Add, review, and organize your income and expenses.' : 'See where your money goes and keep every financial goal within reach.'}
+          </p>
         </div>
 
-        <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
+        {isTransactionsPage && <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
             <Button onClick={resetForm} size="lg" className="w-full bg-blue-600 shadow-lg shadow-blue-600/20 hover:bg-blue-700 sm:w-auto"><Plus className="size-4" /> Add transaction</Button>
           </DialogTrigger>
@@ -206,12 +211,10 @@ export default function DashboardContent({ userName }: DashboardContentProps) {
               </Button>
             </form>
           </DialogContent>
-        </Dialog>
+        </Dialog>}
       </div>
 
-      <SummaryCards summary={summary} />
-
-      <section id="transactions" className="scroll-mt-24 space-y-5">
+      {isTransactionsPage ? <section className="space-y-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-blue-600">Cash flow</p>
@@ -221,7 +224,7 @@ export default function DashboardContent({ userName }: DashboardContentProps) {
             </div>
             <p className="mt-1 text-sm text-slate-500">Your latest income and spending activity.</p>
           </div>
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row">
             <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger className="w-full border-slate-200 bg-white sm:w-[160px]"><SelectValue placeholder="All types" /></SelectTrigger>
               <SelectContent>
@@ -232,7 +235,7 @@ export default function DashboardContent({ userName }: DashboardContentProps) {
             </Select>
             <div className="relative">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-              <Input className="w-full border-slate-200 bg-white pl-9 sm:w-[230px]" placeholder="Search category..." value={filterCategory} onChange={e => setFilterCategory(e.target.value)} />
+              <Input className="w-full border-slate-200 bg-white pl-9 sm:w-[230px]" placeholder="Category..." value={filterCategory} onChange={e => setFilterCategory(e.target.value)} />
             </div>
           </div>
         </div>
@@ -245,9 +248,10 @@ export default function DashboardContent({ userName }: DashboardContentProps) {
         )}
 
         <RecentTransactions transactions={transactions} isLoading={isLoading} hasError={Boolean(loadError)} onEdit={handleEdit} onDelete={handleDelete} onAdd={() => { resetForm(); setIsOpen(true); }} />
-      </section>
-
-      <BudgetSection />
+      </section> : <>
+        <SummaryCards summary={summary} />
+        <BudgetSection />
+      </>}
     </div>
   );
 }

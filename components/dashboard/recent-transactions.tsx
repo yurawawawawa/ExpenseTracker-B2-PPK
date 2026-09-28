@@ -39,6 +39,37 @@ export default function RecentTransactions({ transactions, isLoading = false, ha
             <Button onClick={onAdd} className="mt-5"><Plus className="size-4" /> Add transaction</Button>
           </div>
         ) : (
+          <>
+          <div className="divide-y divide-slate-100 md:hidden">
+            {transactions.map((tx) => (
+              <article key={tx.id} className="p-4">
+                <div className="flex items-start gap-3">
+                  <span className={`grid size-11 shrink-0 place-items-center rounded-2xl ${tx.type === 'income' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                    {tx.type === 'income' ? <ArrowDownLeft className="size-5" /> : <ArrowUpRight className="size-5" />}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate font-semibold text-slate-900">{tx.description || (tx.type === 'income' ? 'Income' : 'Expense')}</p>
+                        <p className="mt-0.5 text-xs text-slate-400">{tx.date ? formatDate(tx.date) : '-'}</p>
+                      </div>
+                      <p className={`shrink-0 text-sm font-bold ${tx.type === 'income' ? 'text-emerald-600' : 'text-rose-600'}`}>
+                        {tx.type === 'income' ? '+' : '-'} {formatRupiah(tx.amount)}
+                      </p>
+                    </div>
+                    <div className="mt-3 flex items-center justify-between gap-2">
+                      <span className="max-w-[11rem] truncate rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">{tx.category || 'Uncategorized'}</span>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => onEdit?.(tx)} aria-label="Edit transaction" className="size-8 text-slate-400 hover:text-blue-600"><Edit2 className="size-4" /></Button>
+                        <Button variant="ghost" size="icon" onClick={() => onDelete?.(tx.id)} aria-label="Delete transaction" className="size-8 text-slate-400 hover:bg-red-50 hover:text-red-600"><Trash2 className="size-4" /></Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+          <div className="hidden md:block">
           <Table className="min-w-[720px]">
             <TableHeader>
               <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
@@ -79,6 +110,8 @@ export default function RecentTransactions({ transactions, isLoading = false, ha
               ))}
             </TableBody>
           </Table>
+          </div>
+          </>
         )}
       </CardContent>
     </Card>
