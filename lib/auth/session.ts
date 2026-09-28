@@ -71,8 +71,11 @@ export async function invalidateSessionToken(token: string, database: DatabaseCl
 export async function destroySession(database: DatabaseClient = getDatabase()) {
   const cookieStore = await cookies();
   const token = cookieStore.get(COOKIE_NAME)?.value;
-  if (token) await invalidateSessionToken(token, database);
-  cookieStore.delete(COOKIE_NAME);
+  try {
+    if (token) await invalidateSessionToken(token, database);
+  } finally {
+    cookieStore.delete(COOKIE_NAME);
+  }
 }
 
 export { COOKIE_NAME, DEFAULT_MAX_AGE };

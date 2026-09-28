@@ -9,6 +9,10 @@ describe("authentication", () => {
     await expect(authenticateUser("", "", {} as DatabaseClient)).rejects.toThrow("required");
   });
 
+  it("rejects malformed email input", async () => {
+    await expect(authenticateUser("not-an-email", "password", {} as DatabaseClient)).rejects.toThrow("valid email");
+  });
+
   it("logs in with a valid password", async () => {
     const hash = await bcrypt.hash("correct-password", 4);
     const database = { query: async () => ({ rows: [{ id: "user-1", password_hash: hash }] }) } as DatabaseClient;

@@ -11,6 +11,9 @@ export async function POST(request: Request) {
     await createSession(user.id, database);
     return NextResponse.json({ message: "Login successful" });
   } catch (error: unknown) {
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ message: "Invalid JSON body" }, { status: 400 });
+    }
     if (error instanceof LoginValidationError) return NextResponse.json({ message: error.message }, { status: 400 });
     if (error instanceof InvalidCredentialsError) return NextResponse.json({ message: error.message }, { status: 401 });
     return NextResponse.json({ message: "Login could not be completed" }, { status: 500 });

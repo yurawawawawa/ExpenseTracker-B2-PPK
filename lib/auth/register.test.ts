@@ -24,14 +24,14 @@ describe("registerUser", () => {
 
   it("rejects invalid email", async () => {
     await expect(
-      registerUser({ name: "Ayu", email: "not-an-email", password: "secret" }, databaseFor([])),
+      registerUser({ name: "Ayu", email: "not-an-email", password: "secret123" }, databaseFor([])),
     ).rejects.toThrow("valid email");
   });
 
   it("rejects a duplicate email", async () => {
     await expect(
       registerUser(
-        { name: "Ayu", email: "ayu@example.com", password: "secret" },
+        { name: "Ayu", email: "ayu@example.com", password: "secret123" },
         databaseFor([{ id: "existing" }]),
       ),
     ).rejects.toBeInstanceOf(DuplicateEmailError);
@@ -47,7 +47,7 @@ describe("registerUser", () => {
 
     await expect(
       registerUser(
-        { name: "Ayu", email: "ayu@example.com", password: "secret" },
+        { name: "Ayu", email: "ayu@example.com", password: "secret123" },
         database,
       ),
     ).rejects.toBeInstanceOf(DuplicateEmailError);
@@ -64,14 +64,14 @@ describe("registerUser", () => {
     } as DatabaseClient;
 
     const account = await registerUser(
-      { name: " Ayu ", email: "AYU@EXAMPLE.COM", password: "secret" },
+      { name: " Ayu ", email: "AYU@EXAMPLE.COM", password: "secret123" },
       database,
     );
 
     expect(account).toEqual({ id: "new-id", name: "Ayu", email: "ayu@example.com" });
     expect(insertedValues[0]).toBe("Ayu");
     expect(insertedValues[1]).toBe("ayu@example.com");
-    expect(insertedValues[2]).not.toBe("secret");
-    await expect(bcrypt.compare("secret", String(insertedValues[2]))).resolves.toBe(true);
+    expect(insertedValues[2]).not.toBe("secret123");
+    await expect(bcrypt.compare("secret123", String(insertedValues[2]))).resolves.toBe(true);
   });
 });

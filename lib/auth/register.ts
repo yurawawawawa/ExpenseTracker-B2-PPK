@@ -13,8 +13,12 @@ export async function registerUser(input: RegisterInput, database?: DatabaseClie
   if (!name || !email || !input.password) {
     throw new RegistrationValidationError("Name, email, and password are required");
   }
+  if (name.length > 120) throw new RegistrationValidationError("Name is too long");
   if (!EMAIL_PATTERN.test(email)) {
     throw new RegistrationValidationError("Enter a valid email address");
+  }
+  if (input.password.length < 8 || input.password.length > 72) {
+    throw new RegistrationValidationError("Password must be between 8 and 72 characters");
   }
 
   const databaseClient = database ?? getDatabase();
