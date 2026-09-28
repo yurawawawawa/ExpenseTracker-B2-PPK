@@ -1,109 +1,129 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+# Expense Tracker
 
-<p align="center">
- The fastest way to build apps with Next.js and Supabase
-</p>
+Aplikasi manajemen keuangan pribadi untuk mencatat pemasukan dan pengeluaran, memantau saldo, serta mengatur budget bulanan. Data transaksi, budget, dan akun dipisahkan berdasarkan pengguna yang sedang login.
 
-<p align="center">
-  <a href="#features"><strong>Features</strong></a> ·
-  <a href="#demo"><strong>Demo</strong></a> ·
-  <a href="#deploy-to-vercel"><strong>Deploy to Vercel</strong></a> ·
-  <a href="#clone-and-run-locally"><strong>Clone and run locally</strong></a> ·
-  <a href="#feedback-and-issues"><strong>Feedback and issues</strong></a>
-  <a href="#more-supabase-examples"><strong>More Examples</strong></a>
-</p>
-<br/>
+## Fitur
 
-## Features
+- Registrasi, login, logout, dan sesi pengguna berbasis cookie.
+- Dashboard ringkasan keuangan dengan saldo dan transaksi terbaru.
+- Pengelolaan transaksi pemasukan dan pengeluaran.
+- Filter transaksi berdasarkan tipe, kategori, tanggal, atau bulan.
+- Pengaturan budget per bulan dan pemantauan pemakaiannya.
+- API yang melindungi data berdasarkan pengguna yang terautentikasi.
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Proxy
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+## Teknologi
 
-## Demo
+- Next.js App Router, React, dan TypeScript
+- PostgreSQL dengan `pg` untuk query aplikasi
+- Prisma Client untuk akses skema/generasi client
+- Tailwind CSS dan komponen Radix UI
+- Vitest dan ESLint
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+## Persiapan
 
-## Deploy to Vercel
+Pastikan Node.js, npm, dan database PostgreSQL tersedia. Clone repository, masuk ke direktori proyek, lalu pasang dependency:
 
-Vercel deployment will guide you through creating a Supabase account and project.
+```bash
+npm install
+```
 
-After installation of the Supabase integration, all relevant environment variables will be assigned to the project so the deployment is fully functioning.
+Buat file `.env.local` di root proyek. Contoh konfigurasi berikut memakai PostgreSQL lokal; sesuaikan nilai koneksi dengan lingkungan Anda:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&project-name=nextjs-with-supabase&repository-name=nextjs-with-supabase&demo-title=nextjs-with-supabase&demo-description=This+starter+configures+Supabase+Auth+to+use+cookies%2C+making+the+user%27s+session+available+throughout+the+entire+Next.js+app+-+Client+Components%2C+Server+Components%2C+Route+Handlers%2C+Server+Actions+and+Middleware.&demo-url=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2F&external-id=https%3A%2F%2Fgithub.com%2Fvercel%2Fnext.js%2Ftree%2Fcanary%2Fexamples%2Fwith-supabase&demo-image=https%3A%2F%2Fdemo-nextjs-with-supabase.vercel.app%2Fopengraph-image.png)
+```env
+# Koneksi aplikasi dan Prisma
+DATABASE_URL="postgresql://postgres:password@localhost:5432/expense_tracker?schema=public"
+DIRECT_URL="postgresql://postgres:password@localhost:5432/expense_tracker?schema=public"
 
-The above will also clone the Starter kit to your GitHub, you can clone that locally and develop locally.
+# Secret untuk hashing token sesi; gunakan nilai acak yang kuat
+SESSION_SECRET="ganti-dengan-secret-acak-yang-panjang"
 
-If you wish to just develop locally and not deploy to Vercel, [follow the steps below](#clone-and-run-locally).
+# Opsional: masa berlaku sesi dalam detik (default 604800 / 7 hari)
+SESSION_MAX_AGE_SECONDS="604800"
 
-## Clone and run locally
+# Dipakai oleh budget seeder
+DB_HOST="localhost"
+DB_PORT="5432"
+DB_DATABASE="expense_tracker"
+DB_USERNAME="postgres"
+DB_PASSWORD="password"
+DB_SSL="false"
+```
 
-1. You'll first need a Supabase project which can be made [via the Supabase dashboard](https://database.new)
+Aplikasi menerima koneksi database melalui salah satu cara berikut:
 
-2. Create a Next.js app using the Supabase Starter template npx command
+- `DATABASE_URL` sebagai connection string PostgreSQL; atau
+- `DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, dan `DB_PASSWORD`, dengan `DB_PORT` opsional (default `5432`).
 
-   ```bash
-   npx create-next-app --example with-supabase with-supabase-app
-   ```
+Untuk Prisma, `DATABASE_URL` dan `DIRECT_URL` perlu menunjuk ke database yang sesuai. Seeder `npm run seed:budget` memakai variabel `DB_*` di atas, sehingga tetap memerlukan konfigurasi tersebut meskipun aplikasi memakai `DATABASE_URL`.
 
-   ```bash
-   yarn create next-app --example with-supabase with-supabase-app
-   ```
+## Menyiapkan Database
 
-   ```bash
-   pnpm create next-app --example with-supabase with-supabase-app
-   ```
+Jalankan SQL berikut pada database PostgreSQL yang sama dengan konfigurasi aplikasi, misalnya melalui `psql` atau SQL editor penyedia database. Jalankan berurutan:
 
-3. Use `cd` to change into the app's directory
+1. `db/migrations/001_create_auth_tables.sql`
+2. `db/migrations/002_create_transactions.sql`
+3. `db/migrations/003_create_budgets.sql`
 
-   ```bash
-   cd with-supabase-app
-   ```
+File `001_create_users.sql` hanya membuat tabel `users` dan merupakan definisi users-only yang redundan untuk setup baru; gunakan `001_create_auth_tables.sql` agar tabel `sessions` juga tersedia.
 
-4. Rename `.env.example` to `.env.local` and update the following:
+Migrasi dalam repository ini berupa file SQL; belum ada perintah migrasi otomatis pada `package.json`.
 
-  ```env
-  NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=[INSERT SUPABASE PROJECT API PUBLISHABLE OR ANON KEY]
-  ```
-  > [!NOTE]
-  > This example uses `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, which refers to Supabase's new **publishable** key format.
-  > Both legacy **anon** keys and new **publishable** keys can be used with this variable name during the transition period. Supabase's dashboard may show `NEXT_PUBLIC_SUPABASE_ANON_KEY`; its value can be used in this example.
-  > See the [full announcement](https://github.com/orgs/supabase/discussions/29260) for more information.
+## Menjalankan Aplikasi
 
-  Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
+Setelah konfigurasi dan database siap:
 
-5. You can now run the Next.js local development server:
+```bash
+npm run dev
+```
 
-   ```bash
-   npm run dev
-   ```
+Buka [http://localhost:3000](http://localhost:3000). Halaman awal mengarahkan pengguna ke halaman login. Buat akun melalui halaman registrasi sebelum menggunakan dashboard.
 
-   The starter kit should now be running on [localhost:3000](http://localhost:3000/).
+Perintah lain yang tersedia:
 
-6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
+```bash
+npm run build       # Build untuk production
+npm run start       # Jalankan build production
+npm run lint        # Jalankan ESLint
+npm test            # Jalankan test dengan Vitest
+npm run seed:budget # Isi data contoh budget dan transaksi
+```
 
-> Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+Seeder membutuhkan setidaknya satu akun yang sudah terdaftar. Seeder memilih akun yang dibuat paling awal dan menambahkan data contoh untuk bulan Januari hingga September 2026. Periksa database sebelum menjalankannya, terutama pada lingkungan yang berisi data nyata.
 
-## Feedback and issues
+## Endpoint API
 
-Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).
+Endpoint berikut memerlukan sesi login kecuali endpoint autentikasi:
 
-## More Supabase examples
+| Method | Endpoint | Kegunaan |
+| --- | --- | --- |
+| `POST` | `/api/auth/register` | Membuat akun |
+| `POST` | `/api/auth/login` | Login |
+| `POST` | `/api/auth/logout` | Logout |
+| `GET` | `/api/transactions` | Mengambil transaksi; mendukung filter `type`, `category`, `date` (`YYYY-MM-DD`), atau `month` (`YYYY-MM`) |
+| `POST` | `/api/transactions` | Membuat transaksi |
+| `PUT` | `/api/transactions?id=<uuid>` | Memperbarui transaksi |
+| `DELETE` | `/api/transactions?id=<uuid>` | Menghapus transaksi |
+| `GET` | `/api/budgets` | Mengambil seluruh budget, atau satu budget dengan parameter `month` dan `year` |
+| `POST` | `/api/budgets` | Membuat atau memperbarui budget bulanan |
+| `DELETE` | `/api/budgets?id=<uuid>` | Menghapus budget |
 
-- [Next.js Subscription Payments Starter](https://github.com/vercel/nextjs-subscription-payments)
-- [Cookie-based Auth and the Next.js 13 App Router (free course)](https://youtube.com/playlist?list=PL5S4mPUpp4OtMhpnp93EFSo42iQ40XjbF)
-- [Supabase Auth and the Next.js App Router](https://github.com/supabase/supabase/tree/master/examples/auth/nextjs)
+Endpoint API menerima dan mengembalikan JSON. Endpoint yang memerlukan sesi mengembalikan status `401` bila pengguna belum login.
+
+## Struktur Proyek
+
+```text
+app/                  Halaman, route handler API, dan server actions
+components/           Komponen UI dan dashboard
+db/migrations/        SQL untuk tabel akun, sesi, transaksi, dan budget
+db/seeders/           Seeder data contoh
+lib/auth/             Registrasi, autentikasi, dan pengelolaan sesi
+lib/                  Akses database, validasi, format, dan tipe data
+prisma/schema.prisma  Skema Prisma
+```
+
+## Catatan Keamanan
+
+- Simpan `.env.local` dan secret database di luar version control; jangan memasukkan kredensial asli ke repository.
+- Gunakan `SESSION_SECRET` yang acak dan kuat, khususnya untuk deployment production.
+- Pastikan akses database dibatasi dan gunakan koneksi SSL sesuai konfigurasi penyedia PostgreSQL.
+- Operasi transaksi dan budget dibatasi pada data milik pengguna yang sedang login.
