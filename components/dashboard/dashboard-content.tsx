@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Transaction } from '@/lib/types';
 import SummaryCards from '@/components/dashboard/summary-cards';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
+import BudgetSection from '@/components/dashboard/budget-section';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -182,6 +183,18 @@ export default function DashboardContent({ userEmail }: DashboardContentProps) {
       </div>
 
       <SummaryCards summary={summary} />
+
+      {/* Budget Management Section */}
+      <div className="relative">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-200 dark:via-blue-800 to-transparent" />
+        <div className="pt-6">
+          <BudgetSection />
+        </div>
+      </div>
+
+      <div className="relative">
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+      </div>
 
       <div className="flex gap-4 items-center">
         <h3 className="font-semibold text-lg">Filters:</h3>
