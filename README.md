@@ -91,6 +91,23 @@ npm run seed:user   # Isi data user
 
 Seeder membutuhkan setidaknya satu akun yang sudah terdaftar. Seeder memilih akun yang dibuat paling awal dan menambahkan data contoh untuk bulan Januari hingga September 2026. Periksa database sebelum menjalankannya, terutama pada lingkungan yang berisi data nyata.
 
+## Development seeders
+
+After running the database migrations, populate the demo user, budgets, and
+transactions with:
+
+```bash
+npm run seed
+```
+
+The default development account is `demo@xpensetracker.local` with password
+`Demo123!`. Override it through `SEED_USER_NAME`, `SEED_USER_EMAIL`, and
+`SEED_USER_PASSWORD` when needed. The user seeder is idempotent and disabled
+when `NODE_ENV=production`.
+
+To create only the demo user, run `npm run seed:user`.
+
+## Feedback and issues
 ## Endpoint API
 
 Endpoint berikut memerlukan sesi login kecuali endpoint autentikasi:

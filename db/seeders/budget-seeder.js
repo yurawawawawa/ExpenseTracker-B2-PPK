@@ -8,12 +8,12 @@
  *   - Transaksi pengeluaran & pemasukan pendukung
  *
  * Fitur keamanan:
- *   - Menggunakan user EXISTING dari tabel users (tidak membuat user baru)
+ *   - Menggunakan demo user dari user seeder bila tersedia
  *   - Idempotent: aman dijalankan berulang kali (ON CONFLICT = upsert/skip)
  *   - Hanya untuk environment development/testing
  *
  * Cara menjalankan:
- *   node db/seeders/budget-seeder.js
+ *   npm run seed
  */
 
 require("dotenv").config({ path: ".env.local" });
@@ -123,14 +123,17 @@ async function seed() {
     // ── Step 1: Find existing user ──────────────────────────────
     console.log(c.cyan("📋 Step 1: Mencari user existing..."));
 
+    const seedEmail = (process.env.SEED_USER_EMAIL || "demo@xpensetracker.local").toLowerCase();
     const userResult = await client.query(
-      "SELECT id, name, email FROM users ORDER BY created_at ASC LIMIT 1"
+      `SELECT id, name, email FROM users
+       ORDER BY CASE WHEN email = $1 THEN 0 ELSE 1 END, created_at ASC
+       LIMIT 1`,
+      [seedEmail]
     );
 
     if (userResult.rows.length === 0) {
       console.log(c.red("\n❌ Tidak ada user di database!"));
-      console.log(c.yellow("   Silakan register terlebih dahulu melalui aplikasi."));
-      console.log(c.dim("   URL: http://localhost:3000/auth/register\n"));
+      console.log(c.yellow("   Jalankan `npm run seed:user` terlebih dahulu.\n"));
       return;
     }
 

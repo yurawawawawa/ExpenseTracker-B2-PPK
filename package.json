@@ -6,6 +6,8 @@
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
+    "seed": "npm run seed:user && npm run seed:budget",
+    "seed:user": "node db/seeders/user-seeder.mjs",
     "seed:budget": "node db/seeders/budget-seeder.js",
     "postinstall": "prisma generate"
   },
