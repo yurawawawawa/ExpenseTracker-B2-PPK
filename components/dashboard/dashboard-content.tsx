@@ -12,10 +12,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Label } from '@/components/ui/label';
 
 interface DashboardContentProps {
-  userEmail: string;
+  userName: string;
 }
 
-export default function DashboardContent({ userEmail }: DashboardContentProps) {
+export default function DashboardContent({ userName }: DashboardContentProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   
   // Filter states
@@ -147,7 +147,7 @@ export default function DashboardContent({ userEmail }: DashboardContentProps) {
         <Card className="flex-1 border-none bg-transparent shadow-none">
           <CardHeader className="px-0 pt-0">
             <p className="mb-2 text-sm font-medium text-primary">Financial overview</p>
-            <CardTitle className="text-2xl tracking-tight text-slate-900 sm:text-3xl">Welcome, {userEmail}</CardTitle>
+            <CardTitle className="text-[32px] leading-tight tracking-tight text-slate-900">Welcome, {userName}</CardTitle>
             <p className="text-muted-foreground">Track your income, expenses, and balance in one place.</p>
           </CardHeader>
         </Card>
