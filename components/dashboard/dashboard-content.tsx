@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Transaction } from '@/lib/types';
 import SummaryCards from '@/components/dashboard/summary-cards';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
+import BudgetSection from '@/components/dashboard/budget-section';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

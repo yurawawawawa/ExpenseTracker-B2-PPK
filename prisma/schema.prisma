@@ -24,3 +24,18 @@ model Transaction {
   @@index([type], map: "transactions_type_idx")
   @@map("transactions")
 }
+
+model Budget {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  month     Int
+  year      Int
+  amount    Decimal  @db.Decimal(15, 2)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([userId, month, year])
+  @@index([userId], map: "budgets_user_id_idx")
+  @@index([month, year], map: "budgets_month_year_idx")
+  @@map("budgets")
+}
