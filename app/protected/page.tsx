@@ -1,11 +1,12 @@
 import { getCurrentUser } from "@/lib/auth/session";
+import { hasDatabaseConfig } from "@/lib/db";
 import { InfoIcon } from "lucide-react";
 import { FetchDataSteps } from "@/components/tutorial/fetch-data-steps";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 async function UserDetails() {
-  if (!process.env.DB_HOST || !process.env.SESSION_SECRET) redirect("/auth/login");
+  if (!hasDatabaseConfig() || !process.env.SESSION_SECRET) redirect("/auth/login");
   const user = await getCurrentUser();
   return JSON.stringify(user, null, 2);
 }

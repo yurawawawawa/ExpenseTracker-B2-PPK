@@ -1,6 +1,8 @@
 import bcrypt from "bcryptjs";
 import { getDatabase, type DatabaseClient } from "../db";
 
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export class LoginValidationError extends Error {}
 export class InvalidCredentialsError extends Error {}
 
@@ -11,6 +13,7 @@ export async function authenticateUser(
 ) {
   const email = emailInput.trim().toLowerCase();
   if (!email || !password) throw new LoginValidationError("Email and password are required");
+  if (!EMAIL_PATTERN.test(email)) throw new LoginValidationError("Enter a valid email address");
 
   const result = await database.query<{ id: string; password_hash: string }>(
     "SELECT id, password_hash FROM users WHERE email = $1 LIMIT 1",

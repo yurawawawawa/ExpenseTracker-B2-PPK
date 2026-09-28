@@ -17,6 +17,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: "Registration successful" }, { status: 201 });
   } catch (error: unknown) {
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ message: "Invalid JSON body" }, { status: 400 });
+    }
     if (error instanceof RegistrationValidationError) {
       return NextResponse.json({ message: error.message }, { status: 400 });
     }

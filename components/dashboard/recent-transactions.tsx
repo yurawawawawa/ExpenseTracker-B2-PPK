@@ -15,7 +15,7 @@ interface RecentTransactionsProps {
 export default function RecentTransactions({ transactions, onEdit, onDelete }: RecentTransactionsProps) {
   return (
     <Card>
-      <CardHeader>
+      <CardHeader id="transactions">
         <CardTitle className="text-sm text-muted-foreground">Transactions</CardTitle>
       </CardHeader>
       <CardContent>
@@ -36,7 +36,7 @@ export default function RecentTransactions({ transactions, onEdit, onDelete }: R
             <TableBody>
               {transactions.map((tx) => (
                 <TableRow key={tx.id}>
-                  <TableCell>{formatDate(tx.date)}</TableCell>
+                  <TableCell>{tx.date ? formatDate(tx.date) : '-'}</TableCell>
                   <TableCell>{tx.description ?? '-'}</TableCell>
                   <TableCell>{tx.category ?? '-'}</TableCell>
                   <TableCell className={tx.type === 'income' ? 'text-green-600' : 'text-red-600'}>{tx.type}</TableCell>

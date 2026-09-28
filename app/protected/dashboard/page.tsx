@@ -11,6 +11,6 @@ export default async function DashboardPage() {
   }
 
   return (
-    <DashboardContent userEmail={user.email ?? ''} />
+    <DashboardContent userName={user.name} />
   );
 }
