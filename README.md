@@ -86,6 +86,7 @@ npm run start       # Jalankan build production
 npm run lint        # Jalankan ESLint
 npm test            # Jalankan test dengan Vitest
 npm run seed:budget # Isi data contoh budget dan transaksi
+npm run seed:user   # Isi data user
 ```
 
 Seeder membutuhkan setidaknya satu akun yang sudah terdaftar. Seeder memilih akun yang dibuat paling awal dan menambahkan data contoh untuk bulan Januari hingga September 2026. Periksa database sebelum menjalankannya, terutama pada lingkungan yang berisi data nyata.
