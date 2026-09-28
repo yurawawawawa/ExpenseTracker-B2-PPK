@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Transaction } from '@/lib/types';
 import SummaryCards from '@/components/dashboard/summary-cards';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
@@ -30,6 +30,8 @@ export default function DashboardContent({ userEmail }: DashboardContentProps) {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitInFlight = useRef(false);
 
   const fetchTransactions = useCallback(async () => {
     try {
@@ -75,6 +77,9 @@ export default function DashboardContent({ userEmail }: DashboardContentProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitInFlight.current) return;
+    submitInFlight.current = true;
+    setIsSubmitting(true);
     const payload = { amount: Number(amount), type, description, category, date };
     
     try {
@@ -87,6 +92,11 @@ export default function DashboardContent({ userEmail }: DashboardContentProps) {
         body: JSON.stringify(payload)
       });
       
+      if (!res.ok) {
+        const result = await res.json().catch(() => ({}));
+        throw new Error(result.message ?? 'Unable to save transaction');
+      }
+
       if (res.ok) {
         setIsOpen(false);
         resetForm();
@@ -94,6 +104,9 @@ export default function DashboardContent({ userEmail }: DashboardContentProps) {
       }
     } catch (e) {
       console.error(e);
+    } finally {
+      submitInFlight.current = false;
+      setIsSubmitting(false);
     }
   };
 
@@ -129,24 +142,25 @@ export default function DashboardContent({ userEmail }: DashboardContentProps) {
   };
 
   return (
-    <div className="flex flex-col gap-8 max-w-5xl mx-auto p-4">
-      <div className="flex justify-between items-center">
-        <Card className="flex-1 border-none shadow-none bg-transparent">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-6 sm:px-6 lg:py-10">
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <Card className="flex-1 border-none bg-transparent shadow-none">
           <CardHeader className="px-0 pt-0">
-            <CardTitle className="text-xl">Welcome, {userEmail}</CardTitle>
-            <p className="text-muted-foreground">Here is an overview of your finances.</p>
+            <p className="mb-2 text-sm font-medium text-primary">Financial overview</p>
+            <CardTitle className="text-2xl tracking-tight text-slate-900 sm:text-3xl">Welcome, {userEmail}</CardTitle>
+            <p className="text-muted-foreground">Track your income, expenses, and balance in one place.</p>
           </CardHeader>
         </Card>
 
         <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
-            <Button onClick={resetForm}>Add Transaction</Button>
+            <Button onClick={resetForm} className="w-full sm:w-auto">Add Transaction</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{editingId ? 'Edit Transaction' : 'Add New Transaction'}</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-4">
+            <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-4">
               <div className="grid gap-2">
                 <Label>Type</Label>
                 <Select value={type} onValueChange={setType}>
@@ -175,7 +189,9 @@ export default function DashboardContent({ userEmail }: DashboardContentProps) {
                 <Label>Date</Label>
                 <Input type="date" required value={date} onChange={e => setDate(e.target.value)} />
               </div>
-              <Button type="submit" className="w-full mt-2">Save</Button>
+              <Button type="submit" className="mt-2 w-full" disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : 'Save transaction'}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
@@ -183,10 +199,10 @@ export default function DashboardContent({ userEmail }: DashboardContentProps) {
 
       <SummaryCards summary={summary} />
 
-      <div className="flex gap-4 items-center">
-        <h3 className="font-semibold text-lg">Filters:</h3>
+      <div className="flex flex-col gap-3 rounded-2xl border border-blue-100 bg-blue-50/60 p-4 sm:flex-row sm:items-center">
+        <h3 className="text-sm font-semibold text-slate-700">Filter transactions</h3>
         <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-[150px]">
+          <SelectTrigger className="w-full bg-white sm:w-[170px]">
             <SelectValue placeholder="All Types" />
           </SelectTrigger>
           <SelectContent>
@@ -195,8 +211,8 @@ export default function DashboardContent({ userEmail }: DashboardContentProps) {
             <SelectItem value="expense">Expense Only</SelectItem>
           </SelectContent>
         </Select>
-        <Input 
-          className="max-w-[200px]" 
+        <Input
+          className="w-full bg-white sm:max-w-[240px]"
           placeholder="Filter by category..." 
           value={filterCategory}
           onChange={e => setFilterCategory(e.target.value)} 

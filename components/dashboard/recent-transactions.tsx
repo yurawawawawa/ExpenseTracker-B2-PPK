@@ -15,7 +15,7 @@ interface RecentTransactionsProps {
 export default function RecentTransactions({ transactions, onEdit, onDelete }: RecentTransactionsProps) {
   return (
     <Card>
-      <CardHeader>
+      <CardHeader id="transactions">
         <CardTitle className="text-sm text-muted-foreground">Transactions</CardTitle>
       </CardHeader>
       <CardContent>
