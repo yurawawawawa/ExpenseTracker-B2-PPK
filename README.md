@@ -98,6 +98,22 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
 
 > Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
 
+## Development seeders
+
+After running the database migrations, populate the demo user, budgets, and
+transactions with:
+
+```bash
+npm run seed
+```
+
+The default development account is `demo@xpensetracker.local` with password
+`Demo123!`. Override it through `SEED_USER_NAME`, `SEED_USER_EMAIL`, and
+`SEED_USER_PASSWORD` when needed. The user seeder is idempotent and disabled
+when `NODE_ENV=production`.
+
+To create only the demo user, run `npm run seed:user`.
+
 ## Feedback and issues
 
 Please file feedback and issues over on the [Supabase GitHub org](https://github.com/supabase/supabase/issues/new/choose).

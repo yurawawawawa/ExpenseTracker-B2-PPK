@@ -5,12 +5,12 @@ import { Transaction } from '@/lib/types';
 import SummaryCards from '@/components/dashboard/summary-cards';
 import RecentTransactions from '@/components/dashboard/recent-transactions';
 import BudgetSection from '@/components/dashboard/budget-section';
-import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { AlertCircle, ArrowUpRight, Plus, Search, Sparkles } from 'lucide-react';
 
 interface DashboardContentProps {
   userName: string;
@@ -18,6 +18,9 @@ interface DashboardContentProps {
 
 export default function DashboardContent({ userName }: DashboardContentProps) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [formError, setFormError] = useState('');
   
   // Filter states
   const [filterType, setFilterType] = useState('all');
@@ -35,6 +38,8 @@ export default function DashboardContent({ userName }: DashboardContentProps) {
   const submitInFlight = useRef(false);
 
   const fetchTransactions = useCallback(async () => {
+    setIsLoading(true);
+    setLoadError('');
     try {
       const query = new URLSearchParams();
       if (filterType !== 'all') query.append('type', filterType);
@@ -48,12 +53,14 @@ export default function DashboardContent({ userName }: DashboardContentProps) {
           'Expires': '0'
         }
       });
-      if (res.ok) {
-        const data = await res.json();
-        setTransactions(data.transactions || []);
-      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || 'Unable to load transactions');
+      setTransactions(Array.isArray(data.transactions) ? data.transactions : []);
     } catch (e) {
       console.error(e);
+      setLoadError(e instanceof Error ? e.message : 'Unable to load transactions');
+    } finally {
+      setIsLoading(false);
     }
   }, [filterType, filterCategory]);
 
@@ -81,6 +88,7 @@ export default function DashboardContent({ userName }: DashboardContentProps) {
     if (submitInFlight.current) return;
     submitInFlight.current = true;
     setIsSubmitting(true);
+    setFormError('');
     const payload = { amount: Number(amount), type, description, category, date };
     
     try {
@@ -105,6 +113,7 @@ export default function DashboardContent({ userName }: DashboardContentProps) {
       }
     } catch (e) {
       console.error(e);
+      setFormError(e instanceof Error ? e.message : 'Unable to save transaction');
     } finally {
       submitInFlight.current = false;
       setIsSubmitting(false);
@@ -134,6 +143,7 @@ export default function DashboardContent({ userName }: DashboardContentProps) {
   };
 
   const resetForm = () => {
+    setFormError('');
     setEditingId(null);
     setAmount('');
     setType('expense');
@@ -143,21 +153,21 @@ export default function DashboardContent({ userName }: DashboardContentProps) {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-6 sm:px-6 lg:py-10">
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <Card className="flex-1 border-none bg-transparent shadow-none">
-          <CardHeader className="px-0 pt-0">
-            <p className="mb-2 text-sm font-medium text-primary">Financial overview</p>
-            <CardTitle className="text-[32px] leading-tight tracking-tight text-slate-900">Welcome, {userName}</CardTitle>
-            <p className="text-muted-foreground">Track your income, expenses, and balance in one place.</p>
-          </CardHeader>
-        </Card>
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-9 px-4 py-7 sm:px-7 lg:px-10 lg:py-10">
+      <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+            <Sparkles className="size-3.5" /> Financial overview
+          </div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">Welcome back, {userName}</h1>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-slate-500 sm:text-base">See where your money goes and keep every financial goal within reach.</p>
+        </div>
 
         <Dialog open={isOpen} onOpenChange={(open) => { setIsOpen(open); if (!open) resetForm(); }}>
           <DialogTrigger asChild>
-            <Button onClick={resetForm} className="w-full sm:w-auto">Add Transaction</Button>
+            <Button onClick={resetForm} size="lg" className="w-full bg-blue-600 shadow-lg shadow-blue-600/20 hover:bg-blue-700 sm:w-auto"><Plus className="size-4" /> Add transaction</Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>{editingId ? 'Edit Transaction' : 'Add New Transaction'}</DialogTitle>
             </DialogHeader>
@@ -190,6 +200,7 @@ export default function DashboardContent({ userName }: DashboardContentProps) {
                 <Label>Date</Label>
                 <Input type="date" required value={date} onChange={e => setDate(e.target.value)} />
               </div>
+              {formError && <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{formError}</p>}
               <Button type="submit" className="mt-2 w-full" disabled={isSubmitting}>
                 {isSubmitting ? 'Saving...' : 'Save transaction'}
               </Button>
@@ -200,31 +211,43 @@ export default function DashboardContent({ userName }: DashboardContentProps) {
 
       <SummaryCards summary={summary} />
 
-      <div className="flex flex-col gap-3 rounded-2xl border border-blue-100 bg-blue-50/60 p-4 sm:flex-row sm:items-center">
-        <h3 className="text-sm font-semibold text-slate-700">Filter transactions</h3>
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-full bg-white sm:w-[170px]">
-            <SelectValue placeholder="All Types" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="income">Income Only</SelectItem>
-            <SelectItem value="expense">Expense Only</SelectItem>
-          </SelectContent>
-        </Select>
-        <Input
-          className="w-full bg-white sm:max-w-[240px]"
-          placeholder="Filter by category..." 
-          value={filterCategory}
-          onChange={e => setFilterCategory(e.target.value)} 
-        />
-      </div>
+      <section id="transactions" className="scroll-mt-24 space-y-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-blue-600">Cash flow</p>
+            <div className="mt-1 flex items-center gap-3">
+              <h2 className="text-2xl font-bold tracking-tight text-slate-950">Transactions</h2>
+              {!isLoading && !loadError && <span className="rounded-full bg-slate-200/70 px-2.5 py-1 text-xs font-bold text-slate-600">{transactions.length}</span>}
+            </div>
+            <p className="mt-1 text-sm text-slate-500">Your latest income and spending activity.</p>
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Select value={filterType} onValueChange={setFilterType}>
+              <SelectTrigger className="w-full border-slate-200 bg-white sm:w-[160px]"><SelectValue placeholder="All types" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All types</SelectItem>
+                <SelectItem value="income">Income only</SelectItem>
+                <SelectItem value="expense">Expense only</SelectItem>
+              </SelectContent>
+            </Select>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
+              <Input className="w-full border-slate-200 bg-white pl-9 sm:w-[230px]" placeholder="Search category..." value={filterCategory} onChange={e => setFilterCategory(e.target.value)} />
+            </div>
+          </div>
+        </div>
 
-      <RecentTransactions 
-        transactions={transactions} 
-        onEdit={handleEdit} 
-        onDelete={handleDelete} 
-      />
+        {loadError && (
+          <div role="alert" className="flex flex-col gap-3 rounded-2xl border border-red-200 bg-red-50 p-5 text-red-800 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-3"><AlertCircle className="size-5 shrink-0" /><div><p className="font-semibold">Transactions could not be loaded</p><p className="text-sm text-red-700">{loadError}</p></div></div>
+            <Button variant="outline" onClick={fetchTransactions} className="border-red-200 bg-white text-red-700 hover:bg-red-100">Try again <ArrowUpRight className="size-4" /></Button>
+          </div>
+        )}
+
+        <RecentTransactions transactions={transactions} isLoading={isLoading} hasError={Boolean(loadError)} onEdit={handleEdit} onDelete={handleDelete} onAdd={() => { resetForm(); setIsOpen(true); }} />
+      </section>
+
+      <BudgetSection />
     </div>
   );
 }

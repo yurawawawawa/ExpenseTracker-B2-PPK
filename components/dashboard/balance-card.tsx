@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { formatRupiah } from '@/lib/format';
 import { getBalanceVisibility, setBalanceVisibility } from '@/lib/cookies';
+import { Eye, EyeOff, Wallet } from 'lucide-react';
 
 interface BalanceCardProps {
   balance: number;
@@ -25,17 +26,21 @@ export default function BalanceCard({ balance }: BalanceCardProps) {
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-sm text-muted-foreground">Balance</CardTitle>
-        <Button variant="ghost" size="sm" onClick={toggle}>
-          {visibility === 'show' ? 'Hide' : 'Show'}
+    <Card className="border-0 bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-xl shadow-blue-600/20 transition-transform duration-200 hover:-translate-y-0.5">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+        <div className="flex items-center gap-3">
+          <span className="grid size-10 place-items-center rounded-xl bg-white/15"><Wallet className="size-5" /></span>
+          <CardTitle className="text-sm font-medium text-blue-100">Current balance</CardTitle>
+        </div>
+        <Button variant="ghost" size="icon" onClick={toggle} className="text-white hover:bg-white/15 hover:text-white" aria-label={visibility === 'show' ? 'Hide balance' : 'Show balance'}>
+          {visibility === 'show' ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
         </Button>
       </CardHeader>
       <CardContent>
-        <p className="text-2xl font-medium">
+        <p className="text-2xl font-bold tracking-tight">
           {visibility === 'show' ? formatRupiah(balance) : '••••••••'}
         </p>
+        <p className="mt-1 text-xs font-medium text-blue-100">Available across all transactions</p>
       </CardContent>
     </Card>
   );
