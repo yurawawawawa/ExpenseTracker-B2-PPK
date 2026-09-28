@@ -57,7 +57,7 @@ export default function BudgetSection() {
   return (
     <section className="flex flex-col gap-5">
       {/* Header: Title + Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
             💰 Budget Management
@@ -66,7 +66,7 @@ export default function BudgetSection() {
             Kelola dan pantau anggaran bulananmu
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="grid w-full gap-2 sm:flex sm:w-auto sm:items-center sm:flex-wrap">
           <MonthSelector
             month={selectedMonth}
             year={selectedYear}

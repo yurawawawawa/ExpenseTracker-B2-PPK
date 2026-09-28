@@ -40,8 +40,8 @@ export default function MonthSelector({ month, year, onMonthChange }: MonthSelec
   };
 
   return (
-    <div className="flex items-center gap-3">
-      <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+    <div className="flex w-full items-center gap-2 sm:w-auto sm:gap-3">
+      <div className="flex min-w-0 flex-1 items-center gap-1 rounded-xl bg-muted/70 p-1 sm:flex-none">
         <Button
           variant="ghost"
           size="icon"
@@ -52,9 +52,9 @@ export default function MonthSelector({ month, year, onMonthChange }: MonthSelec
           <ChevronLeft className="h-4 w-4" />
         </Button>
 
-        <div className="flex items-center gap-2 px-3 min-w-[160px] justify-center">
+        <div className="flex min-w-0 flex-1 items-center justify-center gap-2 px-2 sm:min-w-[160px] sm:flex-none sm:px-3">
           <Calendar className="h-4 w-4 text-blue-500" />
-          <span className="text-sm font-semibold">
+          <span className="truncate text-sm font-semibold">
             {MONTH_NAMES[month - 1]} {year}
           </span>
         </div>
